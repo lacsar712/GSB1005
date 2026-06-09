@@ -98,6 +98,10 @@ def create_app():
             description = request.form.get('description')
             if not title:
                 flash('相册名称不能为空', 'error')
+            elif len(title) > 100:
+                flash('相册名称不能超过100个字符', 'error')
+            elif description and len(description) > 500:
+                flash('相册描述不能超过500个字符', 'error')
             else:
                 new_album = Album(title=title, description=description)
                 db.session.add(new_album)
@@ -105,6 +109,28 @@ def create_app():
                 flash('相册创建成功', 'success')
                 return redirect(url_for('index'))
         return render_template('create_album.html')
+
+    @app.route('/album/edit/<int:album_id>', methods=['GET', 'POST'])
+    @login_required
+    def edit_album(album_id):
+        """编辑相册"""
+        album = Album.query.get_or_404(album_id)
+        if request.method == 'POST':
+            title = request.form.get('title')
+            description = request.form.get('description')
+            if not title:
+                flash('相册名称不能为空', 'error')
+            elif len(title) > 100:
+                flash('相册名称不能超过100个字符', 'error')
+            elif description and len(description) > 500:
+                flash('相册描述不能超过500个字符', 'error')
+            else:
+                album.title = title
+                album.description = description
+                db.session.commit()
+                flash('相册修改成功', 'success')
+                return redirect(url_for('album_detail', album_id=album.id))
+        return render_template('create_album.html', album=album)
 
     @app.route('/album/delete/<int:album_id>')
     @login_required
