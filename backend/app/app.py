@@ -106,6 +106,29 @@ def create_app():
                 return redirect(url_for('index'))
         return render_template('create_album.html')
 
+    @app.route('/album/edit/<int:album_id>', methods=['GET', 'POST'])
+    @login_required
+    def edit_album(album_id):
+        """编辑相册（仅修改标题与描述）"""
+        album = Album.query.get_or_404(album_id)
+        if request.method == 'POST':
+            title = (request.form.get('title') or '').strip()
+            description = (request.form.get('description') or '').strip()
+            # 校验：标题非空且不超过 100 字符；描述可选且不超过 500 字符
+            if not title:
+                flash('相册名称不能为空', 'error')
+            elif len(title) > 100:
+                flash('相册名称不能超过 100 个字符', 'error')
+            elif len(description) > 500:
+                flash('相册描述不能超过 500 个字符', 'error')
+            else:
+                album.title = title
+                album.description = description
+                db.session.commit()
+                flash('相册已更新', 'success')
+                return redirect(url_for('album_detail', album_id=album.id))
+        return render_template('create_album.html', album=album, edit_mode=True)
+
     @app.route('/album/delete/<int:album_id>')
     @login_required
     def delete_album(album_id):
